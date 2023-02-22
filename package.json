@@ -3,8 +3,9 @@
 	"version": "0.0.1",
 	"private": true,
 	"scripts": {
-    "wasm": "wasm-pack build ./wasm-synth --target web",
-		"dev": "npm run wasm && vite dev",
+		"wasm": "wasm-pack build ./wasm-synth --target web && cp -R ./wasm-synth/pkg ./src/wasm",
+		"dev": "vite dev",
+		"wdev": "npm run wasm && vite dev",
 		"build": "vite build",
 		"preview": "vite preview",
 		"test": "playwright test",

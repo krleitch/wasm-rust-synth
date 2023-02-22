@@ -17,3 +17,8 @@ extern {
 pub fn greet() {
     alert("Hello, wasm-synth!");
 }
+
+#[wasm_bindgen]
+pub fn make_noise(frequency: f32, time: f32) -> f32 {
+    return 0.5 * (frequency * 2.0 * std::f32::consts::PI * time).sin(); 
+}

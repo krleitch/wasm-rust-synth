@@ -8,7 +8,13 @@ const config = {
 	preprocess: vitePreprocess(),
 
 	kit: {
-		adapter: adapter()
+		adapter: adapter(),
+		// path aliases, npm run dev to generate in tsconfig
+		alias: {
+			$components: 'src/components',
+			$audio: 'src/audio',
+			$wasm: 'src/wasm'
+		}
 	}
 };
 

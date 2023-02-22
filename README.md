@@ -1,4 +1,4 @@
-# rust-wasm-synth
+# wasm-rust-synth
 
 A web synth made with svelte kit and rust
 
