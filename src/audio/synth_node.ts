@@ -6,7 +6,7 @@ export default class SynthNode extends AudioWorkletNode {
 	 * @param {ArrayBuffer} wasmBytes Sequence of bytes representing the entire
 	 * WASM module
 	 */
-	init(wasmBytes: BufferSource) {
+	init(wasmBytes: ArrayBuffer) {
 		// Listen to messages sent from the audio processor.
 		this.port.onmessage = (event) => this.onmessage(event.data);
 

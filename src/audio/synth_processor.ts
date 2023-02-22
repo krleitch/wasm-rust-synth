@@ -1,7 +1,8 @@
+// polyfill for text encoder and decoder since the audio thread doesn't have one
 import '$audio/text_encoder.js';
 import init, { make_noise } from '$wasm/wasm_synth.js';
 
-class SynthProcessor extends AudioWorkletProcessor {
+export default class SynthProcessor extends AudioWorkletProcessor {
 	index: number;
 
 	static get parameterDescriptors() {
@@ -12,7 +13,7 @@ class SynthProcessor extends AudioWorkletProcessor {
 			},
 			{
 				name: 'frequency',
-				defaultValue: 440
+				defaultValue: 220
 			},
 			{
 				name: 'type',
@@ -24,7 +25,6 @@ class SynthProcessor extends AudioWorkletProcessor {
 	constructor() {
 		super();
 
-		// Listen to events from the PitchNode running on the main thread.
 		this.index = 0;
 		this.port.onmessage = (event) => this.onmessage(event.data);
 	}
@@ -32,9 +32,13 @@ class SynthProcessor extends AudioWorkletProcessor {
 	onmessage(event: SynthProcessorEvent) {
 		switch (event.type) {
 			case 'send-wasm-module':
-				init(WebAssembly.compile(event.wasmBytes)).then(() => {
-					this.port.postMessage({ type: 'wasm-module-loaded' });
-				});
+				try {
+					init(WebAssembly.compile(event.wasmBytes)).then(() => {
+						this.port.postMessage({ type: 'wasm-module-loaded' });
+					});
+				} catch (e) {
+					console.log(e);
+				}
 				break;
 			case 'init-generator':
 				break;

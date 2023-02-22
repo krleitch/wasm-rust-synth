@@ -26,7 +26,7 @@ declare function registerProcessor(
 // synth processor
 type SendWasmModuleEvent = {
 	type: 'send-wasm-module';
-	wasmBytes: BufferSource;
+	wasmBytes: ArrayBuffer;
 };
 type InitGeneratorEvent = {
 	type: 'init-generator';

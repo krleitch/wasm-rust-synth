@@ -6,14 +6,14 @@
 	export let pressed = false;
 
 	const dispatch = createEventDispatcher();
-	let isNatural = ![1, 3, 6, 8, 10].includes(noteNum % 12);
+	let isNatural = ![0, 3, 5, 7, 10].includes(noteNum % 12);
 	let bias = 0;
 
 	// Accidental keys are not perfectly centered
 	if (!isNatural) {
-		if ([1, 6].includes(noteNum % 12)) {
+		if ([3, 10].includes(noteNum % 12)) {
 			bias = -keyWidth / 12;
-		} else if ([3, 10].includes(noteNum % 12)) {
+		} else if ([0, 7].includes(noteNum % 12)) {
 			bias = keyWidth / 12;
 		}
 	}
