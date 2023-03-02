@@ -16,16 +16,15 @@ export default class SynthNode extends AudioWorkletNode {
 		});
 	}
 
-	// Handle an uncaught exception thrown in the PitchProcessor.
-
 	onmessage(event: SynthNodeEvent) {
 		switch (event.type) {
 			case 'wasm-module-loaded':
 				this.port.postMessage({
-					type: 'init-generator'
+					type: 'init-synth'
 				});
 				break;
-			case 'set-frequency':
+			case 'silence':
+				this.disconnect();
 				break;
 			default:
 				throw ((x: never) => x)(event); // Exhaustive check

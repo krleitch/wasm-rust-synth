@@ -1,4 +1,4 @@
-// Audio worklet Processor types
+// Audio worklet types
 
 interface AudioWorkletProcessor {
 	readonly port: MessagePort;
@@ -28,16 +28,33 @@ type SendWasmModuleEvent = {
 	type: 'send-wasm-module';
 	wasmBytes: ArrayBuffer;
 };
-type InitGeneratorEvent = {
-	type: 'init-generator';
+type InitSynthEvent = {
+	type: 'init-synth';
 };
-type SynthProcessorEvent = SendWasmModuleEvent | InitGeneratorEvent;
+type NoteOnEvent = {
+	type: 'note-on';
+	note: Note;
+};
+type NoteOffEvent = {
+	type: 'note-off';
+	note: Note;
+};
+type SynthProcessorEvent = SendWasmModuleEvent | InitSynthEvent | NoteOnEvent | NoteOffEvent;
 
 // synth node
 type WasmModuleLoadedEvent = {
 	type: 'wasm-module-loaded';
 };
-type SetFrequencyEvent = {
-	type: 'set-frequency';
+type DisconnectEvent = {
+	type: 'disconnect';
 };
-type SynthNodeEvent = WasmModuleLoadedEvent | SetFrequencyEvent;
+type SynthNodeEvent = WasmModuleLoadedEvent | DisconnectEvent;
+
+// My types
+type Note = {
+	id: number; // midi number
+	on: number; // time note was activated
+	off: number; // time note was deactivated
+	active: boolean;
+	channel: number;
+};

@@ -4,16 +4,17 @@
 	export let noteNum: number;
 	export let keyWidth = 56;
 	export let pressed = false;
+	export let key = '';
 
 	const dispatch = createEventDispatcher();
-	let isNatural = ![0, 3, 5, 7, 10].includes(noteNum % 12);
+	let isNatural = ![1, 3, 6, 8, 10].includes(noteNum % 12);
 	let bias = 0;
 
 	// Accidental keys are not perfectly centered
 	if (!isNatural) {
-		if ([3, 10].includes(noteNum % 12)) {
+		if ([1, 6].includes(noteNum % 12)) {
 			bias = -keyWidth / 12;
-		} else if ([0, 7].includes(noteNum % 12)) {
+		} else if ([3, 10].includes(noteNum % 12)) {
 			bias = keyWidth / 12;
 		}
 	}
@@ -28,6 +29,21 @@
 		if (!pressed) return;
 		dispatch('noteoff', noteNum);
 		pressed = false;
+	}
+
+	function onKeyDown(event: KeyboardEvent) {
+		switch (event.key) {
+			case key:
+				keyPressed();
+				break;
+		}
+	}
+	function onKeyUp(event: KeyboardEvent) {
+		switch (event.key) {
+			case key:
+				keyReleased();
+				break;
+		}
 	}
 </script>
 
@@ -48,10 +64,18 @@
 	}}
 	on:touchstart|preventDefault={keyPressed}
 	on:touchend|preventDefault={keyReleased}
-/>
+>
+	{key}
+</div>
+
+<svelte:window on:keydown|passive={onKeyDown} on:keyup|passive={onKeyUp} />
 
 <style>
 	div {
+		display: flex;
+		justify-content: center;
+		align-items: flex-end;
+		padding-bottom: 5px;
 		flex-shrink: 0;
 		width: var(--width);
 		min-width: min-content;
@@ -64,11 +88,13 @@
 		height: 60%;
 		background: black;
 		box-shadow: inset white 0px 0px 2px 0px;
+		color: white;
 	}
 	.natural {
 		height: 100%;
 		background: white;
 		box-shadow: inset black 0px 0px 2px 0px;
+		color: black;
 	}
 	.accidental.pressed {
 		background: hsl(0 0% 30%);

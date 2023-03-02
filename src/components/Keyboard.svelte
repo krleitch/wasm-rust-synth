@@ -2,34 +2,26 @@
 	import { onMount } from 'svelte';
 	import Key from '$components/Key.svelte';
 
-	export let octaves = 2;
-	// Todo: isNatural in key.svelte should be based on this number
-	export let middleCMidiNum = 69;
+	export let octaves = 1;
+	export let midiMiddleC = 60;
+	export let alphabet = 'zsxdcvgbhnjm,';
 	export let keysPressed: Array<number> = [];
 
-	let keys: Array<number>;
-	$: keys = [...Array(octaves * 12 + 1).keys()].map(
-		(i) => i + (middleCMidiNum - Math.floor(octaves / 2) * 12)
-	);
-
-	function getFreqFromMidiNum(midiNum: number) {
-		return 2 ** ((midiNum - middleCMidiNum) / 12) * 440;
-	}
+	let keys: Array<[number, string]>;
+	$: keys = [...Array(octaves * 12 + 1).keys()].map((i) => [
+		i + (midiMiddleC - Math.floor(octaves / 2) * 12),
+		alphabet[i]
+	]);
 
 	let audioContext: AudioContext;
 	let primaryGainControl: GainNode;
 	let wasmBytes: ArrayBuffer;
-	let uncompatibleBrowser = false; // If the browser doesnt support audio worklets
+	// we cant load synth node on the server
+	let synthNode: AudioWorkletNode & { init: (w: ArrayBuffer) => void };
+	let uncompatible_browser = false; // If the browser doesnt support audio worklets
 
-	onMount(async () => {
-		// await init();
-
+	async function setup_audio() {
 		audioContext = new AudioContext();
-
-		primaryGainControl = audioContext.createGain();
-		primaryGainControl.gain.setValueAtTime(0.05, 0);
-
-		primaryGainControl.connect(audioContext.destination);
 
 		// Fetch the WebAssembly module that performs pitch detection.
 		const response = await window.fetch('src/wasm/wasm_synth_bg.wasm');
@@ -41,34 +33,39 @@
 		try {
 			await audioContext.audioWorklet.addModule(processorUrl);
 		} catch (e: any) {
-			uncompatibleBrowser = true;
+			uncompatible_browser = true;
 			throw new Error(
 				`Failed to load audio analyzer worklet at url: ${processorUrl}. Further info: ${e.message}`
 			);
 		}
-	});
 
-	const sleep = (ms: number) => new Promise((f) => setTimeout(f, ms));
-
-	async function handleNoteOn(event: CustomEvent<number>) {
-		const freq = getFreqFromMidiNum(event.detail);
 		const SynthNode = (await import('$audio/synth_node')).default;
-		const synth_node = new SynthNode(audioContext, 'SynthProcessor');
-		synth_node.init(wasmBytes);
-
-		// set freq
-		const freq_param = synth_node.parameters.get('frequency');
-		freq_param?.setValueAtTime(freq, audioContext.currentTime);
-
-		synth_node.connect(primaryGainControl);
-		audioContext.resume();
-
-		await sleep(1000); // simulate network delay
-		synth_node.disconnect();
+		synthNode = new SynthNode(audioContext, 'SynthProcessor');
+		synthNode.init(wasmBytes);
 	}
 
-	function handleNoteOff(event: CustomEvent<number>) {
-		// console.log(event.detail);
+	onMount(async () => {
+		await setup_audio();
+		primaryGainControl = audioContext.createGain();
+		primaryGainControl.gain.setValueAtTime(0.05, 0);
+
+		primaryGainControl.connect(audioContext.destination);
+	});
+
+	async function handleNoteOn(event: CustomEvent<number>) {
+		synthNode.connect(primaryGainControl);
+		audioContext.resume();
+		synthNode.port.postMessage({
+			type: 'note-on',
+			note: { id: event.detail, on: audioContext.currentTime, off: 0.0, active: true, channel: 0 }
+		});
+	}
+
+	async function handleNoteOff(event: CustomEvent<number>) {
+		synthNode.port.postMessage({
+			type: 'note-off',
+			note: { id: event.detail, on: 0.0, off: audioContext.currentTime, active: true, channel: 0 }
+		});
 	}
 </script>
 
@@ -77,9 +74,10 @@
 </div>
 <div class="flex justify-center bg-slate-900">
 	<div class="flex px-4 h-56 overflow-auto">
-		{#each keys as note}
+		{#each keys as [note, key]}
 			<Key
 				noteNum={note}
+				{key}
 				on:noteon={handleNoteOn}
 				on:noteoff={handleNoteOff}
 				pressed={keysPressed.includes(note)}
