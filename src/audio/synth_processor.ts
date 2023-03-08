@@ -1,6 +1,6 @@
 // polyfill for text encoder and decoder since the audio thread doesn't have one
 import '$audio/text_encoder.js';
-import init, { make_noise, EnvelopeADSR } from '$wasm/wasm_synth.js';
+import init, { SynthManager } from '$wasm/wasm_synth.js';
 
 declare const sampleRate: number; // provided by audio context
 declare const currentTime: number; // provided by audio context
@@ -8,10 +8,11 @@ declare const currentTime: number; // provided by audio context
 export default class SynthProcessor extends AudioWorkletProcessor {
 	index: number;
 	isSilent: boolean;
-	envelope?: EnvelopeADSR;
-	playingNotes: Array<Note> = [];
+	// envelope?: EnvelopeADSR;
+	// playingNotes: Array<Note> = [];
 	frequencyBase = 220;
 	frequencyPowerBase = 2 ** (1 / 12);
+	synthManager?: SynthManager;
 
 	static get parameterDescriptors() {
 		return [
@@ -38,6 +39,11 @@ export default class SynthProcessor extends AudioWorkletProcessor {
 		this.port.onmessage = (event) => this.onmessage(event.data);
 	}
 
+	// Gets time in seconds since the processor started
+	getTime() {
+		return this.index / sampleRate;
+	}
+
 	// TODO: time in ms
 	onmessage(event: SynthProcessorEvent) {
 		switch (event.type) {
@@ -48,33 +54,22 @@ export default class SynthProcessor extends AudioWorkletProcessor {
 				break;
 			}
 			case 'init-synth': {
-				this.envelope = new EnvelopeADSR();
+				this.synthManager = new SynthManager(sampleRate);
 				break;
 			}
 			case 'note-on': {
-				const note = this.playingNotes.find((note) => note.id === event.note.id);
-				if (!note) {
-					// note does not exist
-					this.playingNotes.push({
-						id: event.note.id,
-						on: (this.index / sampleRate) * 1000,
-						off: 0.0,
-						active: true,
-						channel: 1
-					});
-				} else {
-					// update the existing note
-					note.on = (this.index / sampleRate) * 1000;
-					note.off = 0.0;
-					note.active = true;
+				if (this.synthManager) {
+					this.synthManager.note_on(event.note.id, 'sin_synth');
 				}
-				this.isSilent = false;
 				break;
 			}
 			case 'note-off': {
-				const note = this.playingNotes.find((note) => note.id === event.note.id);
-				if (note) {
-					note.off = (this.index / sampleRate) * 1000;
+				// const note = this.playingNotes.find((note) => note.id === event.note.id);
+				// if (note) {
+				// 	note.off = (this.index / sampleRate) * 1000;
+				// }
+				if (this.synthManager) {
+					this.synthManager.note_off(event.note.id, 'sin_synth');
 				}
 				break;
 			}
@@ -89,41 +84,22 @@ export default class SynthProcessor extends AudioWorkletProcessor {
 		outputs: Float32Array[][],
 		_parameters: Record<string, Float32Array>
 	) {
-		if (this.isSilent) return true;
-		const output = outputs[0];
-
-		output.forEach((channel) => {
-			const notesToRemove: number[] = [];
-
-			for (let i = 0; i < channel.length; i++) {
-				let value = 0;
-				for (const note of this.playingNotes) {
-					const amplitude = this.envelope
-						? this.envelope.get_amplitude((this.index / sampleRate) * 1000, note.on, note.off)
-						: 0;
-
-					const frequency = this.frequencyBase * this.frequencyPowerBase ** (note.id % 12);
-
-					if (amplitude === 0 && note.off > note.on) {
-						notesToRemove.push(note.id);
-					}
-
-					value += make_noise(amplitude, frequency, this.index / sampleRate);
-				}
-
-				channel[i] = value;
-				this.index++;
-			}
-
-			this.playingNotes = this.playingNotes.filter((note) => !notesToRemove.includes(note.id));
-
-			if (this.playingNotes.length === 0) {
-				this.isSilent = true;
-				this.port.postMessage({ type: 'silence' });
-			}
-		});
+		// if (this.isSilent) return true;
+		//
+		// 	if (this.playingNotes.length === 0) {
+		// 		this.isSilent = true;
+		// 		this.port.postMessage({ type: 'silence' });
+		// 	}
 
 		// Returning true tells the Audio system to keep going.
+		// NOTE: We only use a single channel to generate our sounds, will be up-mixed to stereo.
+		const outputChannel = outputs[0][0];
+		if (this.synthManager) {
+			const sample = this.synthManager.next_sample(outputChannel.length);
+			for (let i = 0; i < sample.length; i++) {
+				outputChannel[i] = sample[i];
+			}
+		}
 		return true;
 	}
 }

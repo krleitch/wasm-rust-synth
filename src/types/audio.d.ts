@@ -56,5 +56,5 @@ type Note = {
 	on: number; // time note was activated
 	off: number; // time note was deactivated
 	active: boolean;
-	channel: number;
+	instrument_name: string;
 };

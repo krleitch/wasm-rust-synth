@@ -23,7 +23,7 @@ export default class SynthNode extends AudioWorkletNode {
 					type: 'init-synth'
 				});
 				break;
-			case 'silence':
+			case 'disconnect':
 				this.disconnect();
 				break;
 			default:

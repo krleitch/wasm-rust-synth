@@ -4,7 +4,7 @@
 
 <main class="flex flex-col h-full w-full">
 	<nav class="m-6">
-		<h1 class="text-3xl text-rose-500 font-thin">Wasm-Rust-Synth</h1>
+		<h1 class="text-3xl text-rose-500">Wasm-Rust-Synth</h1>
 	</nav>
 
 	<div class="flex flex-col flex-1">

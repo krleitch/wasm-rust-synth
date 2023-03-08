@@ -39,22 +39,26 @@
 			);
 		}
 
-		const SynthNode = (await import('$audio/synth_node')).default;
-		synthNode = new SynthNode(audioContext, 'SynthProcessor');
-		synthNode.init(wasmBytes);
-	}
-
-	onMount(async () => {
-		await setup_audio();
 		primaryGainControl = audioContext.createGain();
 		primaryGainControl.gain.setValueAtTime(0.05, 0);
 
 		primaryGainControl.connect(audioContext.destination);
+
+		const SynthNode = (await import('$audio/synth_node')).default;
+		synthNode = new SynthNode(audioContext, 'SynthProcessor', { outputChannelCount: [1] });
+		synthNode.init(wasmBytes);
+		synthNode.connect(primaryGainControl);
+
+		if (audioContext.state !== 'running' && audioContext) {
+			await audioContext.resume();
+		}
+	}
+
+	onMount(async () => {
+		await setup_audio();
 	});
 
 	async function handleNoteOn(event: CustomEvent<number>) {
-		synthNode.connect(primaryGainControl);
-		audioContext.resume();
 		synthNode.port.postMessage({
 			type: 'note-on',
 			note: { id: event.detail, on: audioContext.currentTime, off: 0.0, active: true, channel: 0 }
