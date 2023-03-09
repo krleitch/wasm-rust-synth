@@ -6,23 +6,10 @@ pub struct EnvelopeADSR {
     pub sustain_amplitude: f32,
     pub start_amplitude: f32,
 
-    pub max_time: Option<f32>
+    pub max_time: Option<f32>,
 }
 
 impl EnvelopeADSR {
-
-    // #[wasm_bindgen(constructor)]
-    // pub fn new() -> EnvelopeADSR {
-    //     EnvelopeADSR {
-    //         attack_time: 0.1,
-    //         decay_time: 0.01,
-    //         start_amplitude: 1.0,
-    //         sustain_amplitude: 0.8,
-    //         release_time: 0.2,
-    //         max_time: Option::None
-    //     }
-    // }
-
     pub fn get_amplitude(&self, time: f32, time_on: f32, time_off: f32) -> f32 {
         let mut amplitude = 0.0;
         let mut release_amplitude = 0.0;

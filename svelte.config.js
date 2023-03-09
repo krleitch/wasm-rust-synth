@@ -11,7 +11,10 @@ const config = {
 		adapter: adapter(),
 		// path aliases, npm run dev to generate in tsconfig
 		alias: {
+			$src: 'src',
+			$i18n: 'src/stores/i18n.ts',
 			$components: 'src/components',
+			$stores: 'src/stores',
 			$audio: 'src/audio',
 			$wasm: 'src/wasm'
 		}

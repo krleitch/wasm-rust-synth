@@ -53,8 +53,5 @@ type SynthNodeEvent = WasmModuleLoadedEvent | DisconnectEvent;
 // My types
 type Note = {
 	id: number; // midi number
-	on: number; // time note was activated
-	off: number; // time note was deactivated
-	active: boolean;
-	instrument_name: string;
+	instrumentName: string;
 };

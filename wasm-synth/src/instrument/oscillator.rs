@@ -1,16 +1,16 @@
 pub enum Waveform {
-    SINE
+    SINE,
 }
 
 pub struct SamplePoint {
     pub x: f32,
-    pub y: f32
+    pub y: f32,
 }
 
 pub struct Oscillator {
     pub volume: f32,
+    pub sample_rate: f32,
     pub waveform: Waveform,
-    pub sample_rate: u32,
 }
 
 fn frequency_constant(frequency: f32) -> f32 {
@@ -18,14 +18,14 @@ fn frequency_constant(frequency: f32) -> f32 {
 }
 
 impl Oscillator {
-    pub fn sound(&mut self, frequency: f32, iteration: u32, buffer_size: u32) -> Vec<SamplePoint> {
+    pub fn sound(&mut self, frequency: f32, iteration: f32, buffer_size: usize) -> Vec<SamplePoint> {
         let mut buffer = Vec::with_capacity(buffer_size as usize);
         let f = frequency_constant(frequency);
 
         for i in 0..buffer_size {
             
-            let n = (i + (iteration * buffer_size)) as f32;
-            let x = f * (n / self.sample_rate as f32);
+            let index = i as f32 + (iteration * buffer_size as f32);
+            let x = f * (index / self.sample_rate);
 
             let y;
             match self.waveform {
@@ -33,7 +33,7 @@ impl Oscillator {
                     y = x.sin(); 
                 }
             }
-            buffer.push(SamplePoint { x: n, y: y * self.volume });
+            buffer.push(SamplePoint { x: index, y: y * self.volume });
         }
 
         return buffer;
