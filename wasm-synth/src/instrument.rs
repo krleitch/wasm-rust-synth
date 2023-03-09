@@ -33,21 +33,21 @@ impl Instrument {
 
                 for oscillator in oscillator_envelope.oscillators.iter_mut() {
 
-                        let frequency = self.frequency_base * f32::powf(frequency_power_base, note.id as f32 % 12.0);
+                    let frequency = self.frequency_base * f32::powf(frequency_power_base, note.id - 69.0);
 
-                        let frames = oscillator.sound(frequency, self.iteration, buffer_size);
+                    let frames = oscillator.sound(frequency, self.iteration, buffer_size);
 
-                        for i in 0..buffer_size {
-                            let amplitude = oscillator_envelope.envelope.get_amplitude(
-                                frames[i as usize].x / self.sample_rate,
-                                note.on,
-                                note.off
-                            );
-                            buffer[i as usize] += amplitude * frames[i as usize].y;
-                            if amplitude == 0.0 && note.off > note.on {
-                                notes_to_remove.push(note.id)
-                            }
+                    for i in 0..buffer_size {
+                        let amplitude = oscillator_envelope.envelope.get_amplitude(
+                            frames[i as usize].x / self.sample_rate,
+                            note.on,
+                            note.off
+                        );
+                        buffer[i as usize] += amplitude * frames[i as usize].y;
+                        if amplitude == 0.0 && note.off > note.on {
+                            notes_to_remove.push(note.id)
                         }
+                    }
                 }
             }            
 

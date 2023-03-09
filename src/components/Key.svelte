@@ -1,46 +1,48 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
 
-	export let noteNum: number;
+	export let note: number;
 	export let keyWidth = 56;
 	export let pressed = false;
-	export let key = '';
+	export let label = '';
 
 	const dispatch = createEventDispatcher();
-	let isNatural = ![1, 3, 6, 8, 10].includes(noteNum % 12);
+	let isNatural = ![1, 3, 6, 8, 10].includes(note % 12);
 	let bias = 0;
 
 	// Accidental keys are not perfectly centered
 	if (!isNatural) {
-		if ([1, 6].includes(noteNum % 12)) {
+		if ([1, 6].includes(note % 12)) {
 			bias = -keyWidth / 12;
-		} else if ([3, 10].includes(noteNum % 12)) {
+		} else if ([3, 10].includes(note % 12)) {
 			bias = keyWidth / 12;
 		}
 	}
 
 	function keyPressed() {
 		if (pressed) return;
-		dispatch('noteon', noteNum);
+		dispatch('noteon', note);
 		pressed = true;
 	}
 
 	function keyReleased() {
 		if (!pressed) return;
-		dispatch('noteoff', noteNum);
+		dispatch('noteoff', note);
 		pressed = false;
 	}
 
 	function onKeyDown(event: KeyboardEvent) {
+		event.preventDefault();
 		switch (event.key) {
-			case key:
+			case label:
 				keyPressed();
 				break;
 		}
 	}
 	function onKeyUp(event: KeyboardEvent) {
+		event.preventDefault();
 		switch (event.key) {
-			case key:
+			case label:
 				keyReleased();
 				break;
 		}
@@ -62,13 +64,13 @@
 	on:mouseleave={(e) => {
 		if (e.buttons) keyReleased();
 	}}
-	on:touchstart|preventDefault={keyPressed}
-	on:touchend|preventDefault={keyReleased}
+	on:touchstart={keyPressed}
+	on:touchend={keyReleased}
 >
-	{key}
+	{label}
 </div>
 
-<svelte:window on:keydown|passive={onKeyDown} on:keyup|passive={onKeyUp} />
+<svelte:window on:keydown={onKeyDown} on:keyup={onKeyUp} />
 
 <style>
 	div {

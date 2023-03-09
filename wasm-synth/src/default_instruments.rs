@@ -29,7 +29,7 @@ pub fn create_sin_synth(sample_rate: f32) -> instrument::Instrument {
             notes: Vec::new(),
             iteration: 0.0,
             sample_rate,
-            frequency_base: 220.0,
+            frequency_base: 440.0,
         };
 
         return instr_sin_synth;
