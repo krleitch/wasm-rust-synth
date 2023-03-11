@@ -14,7 +14,8 @@ impl EnvelopeADSR {
         let mut amplitude = 0.0;
         let mut release_amplitude = 0.0;
 
-        if time_on > time_off { // note is on
+        if time_on > time_off {
+            // note is on
             let lifetime = time - time_on;
             // attack
             if lifetime <= self.attack_time {
@@ -22,7 +23,9 @@ impl EnvelopeADSR {
             }
             // decay
             if lifetime > self.attack_time && lifetime <= (self.attack_time + self.decay_time) {
-                amplitude = ((lifetime - self.attack_time) / self.decay_time) * (self.sustain_amplitude - self.start_amplitude) + self.start_amplitude;
+                amplitude = ((lifetime - self.attack_time) / self.decay_time)
+                    * (self.sustain_amplitude - self.start_amplitude)
+                    + self.start_amplitude;
             }
             // sustain
             if lifetime > (self.attack_time + self.decay_time) {
@@ -34,7 +37,8 @@ impl EnvelopeADSR {
                     amplitude = 0.0;
                 }
             }
-        } else { // note is off
+        } else {
+            // note is off
             let lifetime = time_off - time_on;
             // attack
             if lifetime <= self.attack_time {
@@ -42,14 +46,17 @@ impl EnvelopeADSR {
             }
             // decay
             if lifetime > self.attack_time && lifetime <= (self.attack_time + self.decay_time) {
-                release_amplitude = ((lifetime - self.attack_time) / self.decay_time) * (self.sustain_amplitude - self.start_amplitude) + self.start_amplitude;
+                release_amplitude = ((lifetime - self.attack_time) / self.decay_time)
+                    * (self.sustain_amplitude - self.start_amplitude)
+                    + self.start_amplitude;
             }
             // sustain
             if lifetime > (self.attack_time + self.decay_time) {
                 release_amplitude = self.sustain_amplitude;
             }
             // release
-            amplitude = ((time - time_off) / self.release_time) * (0.0 - release_amplitude) + release_amplitude;
+            amplitude = ((time - time_off) / self.release_time) * (0.0 - release_amplitude)
+                + release_amplitude;
             // max time
             if let Some(max_time_val) = self.max_time {
                 if lifetime > max_time_val {

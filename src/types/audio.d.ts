@@ -1,4 +1,4 @@
-// Audio worklet types
+// Processor types
 
 interface AudioWorkletProcessor {
 	readonly port: MessagePort;
@@ -21,6 +21,13 @@ declare function registerProcessor(
 	}
 ): undefined;
 
+// Node types
+
+type SynthAudioWorkletNode = AudioWorkletNode & {
+	init: (wasmBytes: ArrayBuffer) => void;
+	instruments: string[];
+};
+
 // Event types
 
 // synth processor
@@ -39,18 +46,31 @@ type NoteOffEvent = {
 	type: 'note-off';
 	note: Note;
 };
-type SynthProcessorEvent = SendWasmModuleEvent | InitSynthEvent | NoteOnEvent | NoteOffEvent;
+type GetInstrumentsEvent = {
+	type: 'get-instruments';
+};
+type SynthProcessorEvent =
+	| SendWasmModuleEvent
+	| InitSynthEvent
+	| NoteOnEvent
+	| NoteOffEvent
+	| GetInstrumentsEvent;
 
 // synth node
 type WasmModuleLoadedEvent = {
 	type: 'wasm-module-loaded';
 };
+type InstrumentListEvent = {
+	type: 'instrument-list-loaded';
+	instruments: string[];
+};
 type DisconnectEvent = {
 	type: 'disconnect';
 };
-type SynthNodeEvent = WasmModuleLoadedEvent | DisconnectEvent;
+type SynthNodeEvent = WasmModuleLoadedEvent | InstrumentListEvent | DisconnectEvent;
 
-// My types
+// Data types
+
 type Note = {
 	id: number; // midi number
 	instrumentName: string;

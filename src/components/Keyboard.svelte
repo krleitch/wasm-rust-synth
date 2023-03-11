@@ -22,6 +22,11 @@
 				type: 'note-on',
 				note: { id: event.detail, instrumentName: 'sin_synth' }
 			});
+
+			$synthNode.port.postMessage({
+				type: 'get-instruments'
+			});
+			console.log($synthNode.instruments);
 		}
 	}
 

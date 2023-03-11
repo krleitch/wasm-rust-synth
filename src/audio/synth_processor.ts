@@ -38,6 +38,13 @@ export default class SynthProcessor extends AudioWorkletProcessor {
 				}
 				break;
 			}
+			case 'get-instruments': {
+				if (this.synthManager) {
+					const instruments = this.synthManager.get_instruments();
+					this.port.postMessage({ type: 'instrument-list-loaded', instruments });
+				}
+				break;
+			}
 			default: {
 				throw ((x: never) => x)(event); // Exhaustive check
 			}

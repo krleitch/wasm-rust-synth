@@ -3,8 +3,6 @@ import { browser } from '$app/environment';
 
 import type { Writable } from 'svelte/store';
 
-type SynthAudioWorkletNode = AudioWorkletNode & { init: (wasmBytes: ArrayBuffer) => void };
-
 // exports
 export const uncompatibleBrowser = writable(false);
 export const audioContext: Writable<AudioContext | undefined> = writable(undefined);
@@ -28,15 +26,15 @@ export async function setupAudio() {
 
 		// create an oscilloscope
 		const WavyJones = (await import('$audio/wavy_jones')).default;
-		const wavyJones = new WavyJones(context, 'oscilloscope');
-		wavyJones.analyser.lineColor = '#EE0000';
-		wavyJones.analyser.lineThickness = 3;
-		wavyJones.analyser.connect(context.destination);
+		const osc = WavyJones(context, 'oscilloscope');
+		osc.lineColor = '#EE0000';
+		osc.lineThickness = 2;
+		osc.connect(context.destination);
 
 		// Connect to a primary gain node
 		const gainNode = context.createGain();
 		gainNode.gain.setValueAtTime(0.05, 0);
-		gainNode.connect(wavyJones.analyser);
+		gainNode.connect(osc);
 
 		// Fetch the WebAssembly module that performs pitch detection.
 		const response = await window.fetch('src/wasm/wasm_synth_bg.wasm');
@@ -52,6 +50,6 @@ export async function setupAudio() {
 		audioContext.set(context);
 		primaryGainNode.set(gainNode);
 		synthNode.set(synthProcessor);
-		oscilloscope.set(wavyJones.analyser);
+		oscilloscope.set(osc);
 	}
 }

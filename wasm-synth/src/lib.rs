@@ -1,6 +1,6 @@
-mod utils;
-mod instrument;
 mod default_instruments;
+mod instrument;
+mod utils;
 
 use wasm_bindgen::prelude::*;
 
@@ -19,7 +19,6 @@ pub struct SynthManager {
 
 #[wasm_bindgen]
 impl SynthManager {
-
     #[wasm_bindgen(constructor)]
     pub fn new(sample_rate: f32, buffer_size: usize) -> SynthManager {
         let mut synth_manager = SynthManager {
@@ -28,7 +27,7 @@ impl SynthManager {
             instruments: Vec::new(),
         };
 
-        // Create the default instruments 
+        // Create the default instruments
         let sin_synth = default_instruments::create_sin_synth(sample_rate);
         synth_manager.instruments.push(sin_synth);
         return synth_manager;
@@ -37,7 +36,6 @@ impl SynthManager {
     #[wasm_bindgen]
     pub fn note_on(&mut self, note_id: f32, instrument_name: &str) {
         for instrument in self.instruments.iter_mut() {
-
             if instrument_name == instrument.name {
                 // Check if we just need to update existing note
                 if let Some(note) = instrument.notes.iter_mut().find(|x| x.id == note_id) {
@@ -49,12 +47,12 @@ impl SynthManager {
                         on: (instrument.iteration * self.buffer_size as f32) / self.sample_rate,
                         off: 0.0,
                         active: true,
-                        instrument_name: String::from(instrument_name)
+                        instrument_name: String::from(instrument_name),
                     });
                 }
             }
         }
-    } 
+    }
 
     #[wasm_bindgen]
     pub fn note_off(&mut self, note_id: f32, instrument_name: &str) {
@@ -65,8 +63,8 @@ impl SynthManager {
                 }
             }
         }
-    } 
-   
+    }
+
     #[wasm_bindgen]
     pub fn next_sample(&mut self, buffer_size: usize) -> Vec<f32> {
         let mut buffer = vec![0.0; buffer_size];
@@ -79,6 +77,16 @@ impl SynthManager {
         }
 
         return buffer;
-    } 
+    }
 
+    #[wasm_bindgen]
+    pub fn get_instruments(&mut self) -> js_sys::Array {
+        let instruments = js_sys::Array::new();
+
+        for instrument in self.instruments.iter_mut() {
+            instruments.push(&JsValue::from_str(&instrument.name));
+        }
+
+        return instruments;
+    }
 }

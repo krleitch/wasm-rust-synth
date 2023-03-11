@@ -1,4 +1,6 @@
 export default class SynthNode extends AudioWorkletNode {
+	instruments: string[] = [];
+
 	/**
 	 * Initialize the Audio processor by sending the fetched WebAssembly module to
 	 * the processor worklet.
@@ -22,6 +24,9 @@ export default class SynthNode extends AudioWorkletNode {
 				this.port.postMessage({
 					type: 'init-synth'
 				});
+				break;
+			case 'instrument-list-loaded':
+				this.instruments = event.instruments;
 				break;
 			case 'disconnect':
 				this.disconnect();
